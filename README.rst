@@ -19,7 +19,7 @@ usage: aprdna [-h] [-a NAME] [-p PERIOD] [-t TOLERANCE] [-m LENGTH] [-r THROTTLE
 
 Search for periodic repetitions of dinucleotides. Given a GenBank sequence file,
 it will search it for repetitions of each of all possible dinucleotides with a
-periodicity of PERIOD +/- TOLERANCE. DNA regions in which there are LENGTH or more
+periodicity of PERIOD +/- TOLERANCE/2. DNA regions in which there are LENGTH or more
 consecutive repetitions are considered a match. The output is the percentage of the
 sequence corresponding to matching regions for each dinucleotide, and PDFs comparing
 the matching regions with other features published with the given sequence files.
