@@ -1,6 +1,7 @@
 
 
 import argparse
+from random import randint
 
 from Bio.Seq import Seq
 from reportlab.lib.units import cm
@@ -35,7 +36,7 @@ class Search:
         self.length = len(self.dna)
 
         self.chr_diagram = BasicChromosome.Organism()
-        self.chr_diagram.page_size = (29.7 * cm, 21 * cm)  # A4 landscape
+        self.chr_diagram.page_size = (21 * cm, 29.7 * cm)  # A4 landscape
 
         self.features = []
 
@@ -51,20 +52,29 @@ class Search:
         per10000 = int((self.featured / self.length) * 10000)
         legend = f"{self.nucleotide}: {per10000:>5,d} %00 ({len(self.features):>5})"
 
-        ftypes = set([f.type for f in self.record.features])
-        for ftype in ftypes:
-            features = []
-            for f in self.record.features:
-                if f.type == ftype:
-                    f.qualifiers['color'] = [2]
-                    features.append(f)
-            self.add_chromosome(features, f"{ftype}")
+        features = []
+        for f in self.record.features:
+            if 'gene' in f.type.lower():
+                f.qualifiers['color'] = [2]
+                features.append(f)
+
+        lf = len(features)
+        ftrs = []
+        if lf > 100:
+            for _ in range(100):
+                ftrs.append(features[randint(0, lf - 1)])
+        else:
+            ftrs = features
+
+        self.add_chromosome(ftrs, "genes")
+
+        self.add_chromosome(self.features, str(self.nucleotide))
 
         self.chr_diagram.draw(str(self.nucleotide) + '-' + self.record.name + '-' + str(self.min_length) + '-' + str(self.tolerance) + ".pdf", self.record.description)
 
         print(legend)
 
-    def add_chromosome(self, other_feature, name):
+    def add_chromosome(self, feature, name):
 
         chromosome = BasicChromosome.Chromosome(name)
         chromosome.scale_num = self.length + 4
@@ -73,9 +83,7 @@ class Search:
         start.scale = 2
         chromosome.add(start)
 
-        features = self.features + other_feature
-
-        body = BasicChromosome.AnnotatedChromosomeSegment(self.length, features)
+        body = BasicChromosome.AnnotatedChromosomeSegment(self.length, feature)
         body.scale = self.length
         chromosome.add(body)
 
@@ -140,18 +148,15 @@ def main():
     parser.add_argument('-p', '--period', help='Periodicity of the repetition', type=int)
     parser.add_argument('-t', '--tolerance', help='Tolerance window for the repetition', type=int)
     parser.add_argument('-m', '--length', help='Minimal repetition length', type=int)
-    parser.add_argument('-r', '--throttle', help='Stop after so many fragments', type=int, default=-1)
     parser.add_argument('path', help='Path to Sequence file', type=str)
 
     args = parser.parse_args()
 
     print(args.path.split('/')[-1])
 
-    for i, record in enumerate(SeqIO.parse(args.path, "genbank")):
+    for record in SeqIO.parse(args.path, "genbank"):
         print('\n')
         print(f"{record.name} - {len(record.seq):,d} bp")
-        if args.throttle != -1 and i >= args.throttle:
-            break
 
         for nucleotide in dinucleotides:
             search = Search(nucleotide, args.period, args.tolerance, args.length, record)

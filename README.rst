@@ -36,5 +36,3 @@ optional arguments:
                         Tolerance window for the repetition
   -m LENGTH, --length LENGTH
                         Minimal repetition length
-  -r THROTTLE, --throttle THROTTLE
-                        Stop after so many fragments
